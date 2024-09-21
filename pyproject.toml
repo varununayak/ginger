@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "ginger"
+version = "0.1.0"
+description = ""
+authors = ["Varun Nayak <varunnayak3101@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+urdf-parser-py = "^0.0.4"
+flask = "^3.0.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
