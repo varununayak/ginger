@@ -1,4 +1,4 @@
-let scene, camera, renderer;
+let scene, camera, renderer, controls;
 
 function initScene() {
     scene = new THREE.Scene();
@@ -12,56 +12,73 @@ function initScene() {
     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
     scene.add(directionalLight);
 
-    camera.position.z = 5;
-}
+    camera.position.set(5, 5, 5);
+    camera.lookAt(0, 0, 0);
 
-function createRobotModel(robotData) {
-    robotData.links.forEach(link => {
-        if (link.visual) {
-            const geometry = new THREE.BoxGeometry(link.visual[0], link.visual[1], link.visual[2]);
-            const material = new THREE.MeshPhongMaterial({color: 0x00ff00});
-            const mesh = new THREE.Mesh(geometry, material);
-            mesh.name = link.name;
-            scene.add(mesh);
-        }
-    });
+    // Add OrbitControls
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
 
-    // TODO: Handle joints and position links correctly
+    // Add grid
+    const gridHelper = new THREE.GridHelper(10, 100, 0x888888, 0x444444);
+    gridHelper.position.y = 0;
+    scene.add(gridHelper);
+
+    // Add axes helper
+    const axesHelper = new THREE.AxesHelper(5);
+    scene.add(axesHelper);
 }
 
 function animate() {
     requestAnimationFrame(animate);
+    controls.update();
     renderer.render(scene, camera);
 }
 
 async function handleFileUpload(event) {
     const file = event.target.files[0];
-    const formData = new FormData();
-    formData.append('urdf', file);
-    
+
     try {
-        const response = await fetch('/parse_urdf', {
-            method: 'POST',
-            body: formData
-        });
-        const robotData = await response.json();
-        
-        if (!scene) {
-            initScene();
-            animate();
-        } else {
-            // Clear existing model
-            while(scene.children.length > 0){ 
-                scene.remove(scene.children[0]); 
+        const loader = new THREE.OBJLoader();
+        const objData = await file.text();
+        const object = loader.parse(objData);
+
+        // Clear existing model
+        scene.children.forEach(child => {
+            if (child.type === 'Group') {
+                scene.remove(child);
             }
-        }
-        
-        createRobotModel(robotData);
+        });
+
+        scene.add(object);
+
+        // Center the object
+        const box = new THREE.Box3().setFromObject(object);
+        const center = box.getCenter(new THREE.Vector3());
+        object.position.sub(center);
+
+        // Scale the object to fit in the scene
+        const scaleVector = new THREE.Vector3();
+        box.getSize(scaleVector);
+        const maxDim = Math.max(scaleVector.x, scaleVector.y, scaleVector.z);
+        const scale = 5 / maxDim;
+        object.scale.set(scale, scale, scale);
+
     } catch (error) {
-        console.error('Error processing URDF:', error);
+        console.error('Error processing 3D model:', error);
     }
 }
 
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('urdfInput').addEventListener('change', handleFileUpload);
+    initScene();
+    animate();
+    document.getElementById('modelInput').addEventListener('change', handleFileUpload);
+    window.addEventListener('resize', onWindowResize);
 });

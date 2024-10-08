@@ -1,14 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>URDF Viewer</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="/js/app.js" defer></script>
+    <title>3D Model Viewer</title>
+    <style>
+        body { margin: 0; }
+        #viewer { width: 100vw; height: 100vh; }
+    </style>
+      <script src="https://cdn.jsdelivr.net/npm/three@0.137.0/build/three.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/ColladaLoader.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
+
 <body>
-    <input type="file" id="urdfInput" accept=".urdf">
+    <input type="file" id="modelInput" accept=".obj,.stl">
     <div id="viewer"></div>
+    <script src="/js/app.js"></script>
 </body>
+
 </html>
